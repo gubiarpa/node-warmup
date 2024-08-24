@@ -1,53 +1,49 @@
-const http = require('node:http')
+const express = require('express')
+const app = express()
+
 const ditto = require('./pokemon/ditto.json')
 
-const desiredPort = process.argv[2] ?? 3000
+app.disable('x-powered-by')
 
-const processRequest = (req, res) => {
-	const { method, url } = req
+const PORT = process.env.PORT ?? 3000
 
-	switch (method) {
-		case 'GET':
-			switch (url) {
-				case '/pokemon/ditto':
-					res.statusCode = 200 // OK
-					res.setHeader('Content-Type', 'application/json; charset=utf-8')
-					res.end(JSON.stringify(ditto))
-					break
-				default:
-					res.statusCode = 404
-					res.end('<h1>404 Not Found</h1>')
-					break
-			}
-			break
-		case 'POST':
-			switch (url) {
-				case '/pokemon':
-					let body = ''
+app.use((req, _, next) => {
+	if (req.method !== 'POST') return next()
+	if (req.headers['content-type'] !== 'application/json') return next()
 
-					/// Working with chunks...
-					req.on('data', (chunk) => {
-						body += chunk.toString()
-					})
+	let body = ''
 
-					/// When all body loads
-					req.on('end', () => {
-						const data = JSON.parse(body)
-						res.writeHead(201, {
-							'Content-Type': 'application/json: charset=utf-8',
-						})
-						data.timestamp = Date.now()
-						res.end(JSON.stringify(data))
-					})
-					break
-				default:
-					break
-			}
-	}
-}
+	req.on('data', (chunk) => {
+		body += chunk.toString()
+	})
 
-const server = http.createServer(processRequest)
+	req.on('end', () => {
+		const data = JSON.parse(body)
+		data.timestamp = Date.now()
 
-server.listen(desiredPort, () => {
-	console.log(`Server listening on port http://localhost:${desiredPort}`)
+		// Vamos a mutar la request antes de que se procese
+		req.body = data
+
+		next()
+	})
+})
+
+app.get('/', (_, res) => {
+	res.json({ message: 'Habla gente' })
+})
+
+app.get('/pokemon/ditto', (_, res) => {
+	res.json(ditto)
+})
+
+app.post('/pokemon', (req, res) => {
+	res.status(201).json(req.body)
+})
+
+app.use((req, res) => {
+	res.status(404).send('<h1>404 - Not Found</h1>')
+})
+
+app.listen(PORT, () => {
+	console.log(`Server running on http://localhost:${PORT}`)
 })
