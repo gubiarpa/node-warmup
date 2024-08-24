@@ -1,4 +1,6 @@
 const express = require('express')
+const path = require('node:path')
+
 const app = express()
 
 const ditto = require('./pokemon/ditto.json')
@@ -30,6 +32,11 @@ app.use((req, _, next) => {
 
 app.get('/', (_, res) => {
 	res.json({ message: 'Habla gente' })
+})
+
+app.get('/ps5.png', (_, res) => {
+	const file = path.join(__dirname, './img/PS5.jpg')
+	res.sendFile(file)
 })
 
 app.get('/pokemon/ditto', (_, res) => {
