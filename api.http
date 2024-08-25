@@ -1,17 +1,29 @@
-### Default response
-GET http://localhost:3000
+### Default
+GET http://localhost:2907
 
-### Getting Ditto
-GET http://localhost:3000/pokemon/ditto
+### Retrieve all movies
+GET http://localhost:2907/movies
 
-### For creating a pokemon
-POST http://localhost:3000/pokemon
+### Retrieve a movie by ID
+GET http://localhost:2907/movies/c8a7d63f-3b04-44d3-9d95-8782fd7dcfaf
+
+### Retrieve a movie by ID
+GET http://localhost:2907/movies?genre=crime
+
+### Create a movie
+POST http://localhost:2907/movies
 Content-Type: application/json
 
 {
-  "name": "ditto",
-  "type": "normal",
-  "moves": [
-    "transform"
-  ]
+  "title": "El Conde de Montecristo",
+  "year": 2002,
+  "director": "Kevin Reynolds",
+  "duration": 131,
+  "poster": "https://m.media-amazon.com/images/M/MV5BMDM0ZWRjZDgtZWI0MS00ZTIzLTg4MWYtZjU5MDEyMDU0ODBjXkEyXkFqcGdeQXVyMTQxNzMzNDI@._V1_SX300.jpg",
+  "rate": 9,
+  "genre": [
+      "action",
+      "crime",
+      "drama"
+    ]
 }

@@ -1,53 +1,63 @@
 const express = require('express')
-const path = require('node:path')
+const crypto = require('node:crypto')
+const movies = require('./mock/movies.json')
 
 const app = express()
 
-const ditto = require('./pokemon/ditto.json')
-
 app.disable('x-powered-by')
 
-const PORT = process.env.PORT ?? 3000
+const PORT = process.env.PORT ?? 2907
 
-app.use((req, _, next) => {
-	if (req.method !== 'POST') return next()
-	if (req.headers['content-type'] !== 'application/json') return next()
-
-	let body = ''
-
-	req.on('data', (chunk) => {
-		body += chunk.toString()
-	})
-
-	req.on('end', () => {
-		const data = JSON.parse(body)
-		data.timestamp = Date.now()
-
-		// Vamos a mutar la request antes de que se procese
-		req.body = data
-
-		next()
-	})
-})
+app.use(express.json())
 
 app.get('/', (_, res) => {
-	res.json({ message: 'Habla gente' })
+	res.json({ message: 'Hola gentita' })
 })
 
-app.get('/ps5.png', (_, res) => {
-	const file = path.join(__dirname, './img/PS5.jpg')
-	res.sendFile(file)
+app.get('/movies', (req, res) => {
+	const { genre } = req.query
+	const moviesWithLowerFields = movies.map(({ genre, ..._ }) => {
+		return {
+			..._,
+			genre: genre.map((x) => x.toLocaleLowerCase()),
+		}
+	})
+	if (genre) {
+		const lowerGenre = genre.toLocaleLowerCase()
+		const filteredMovies = moviesWithLowerFields.filter((x) =>
+			x.genre.includes(lowerGenre)
+		)
+		return res.json(filteredMovies)
+	}
+	res.json(moviesWithLowerFields)
 })
 
-app.get('/pokemon/ditto', (_, res) => {
-	res.json(ditto)
+app.get('/movies/:id', (req, res) => {
+	console.log(req.params)
+	const { id } = req.params
+	const movie = movies.find((x) => x.id === id)
+	if (movie) return res.json(movie)
+	res.status(404).json({ message: 'Not found' })
 })
 
-app.post('/pokemon', (req, res) => {
-	res.status(201).json(req.body)
+app.post('/movies', (req, res) => {
+	const { title, genre, year, director, duration, rate, poster } = req.body
+	const newID = crypto.randomUUID()
+	const newMovie = {
+		id: newID,
+		title,
+		genre,
+		year,
+		director,
+		duration,
+		rate: rate ?? 0,
+		poster,
+	}
+	movies.push(newMovie)
+	res.status(201).json(newMovie)
 })
 
-app.use((req, res) => {
+app.use((_, res) => {
 	res.status(404).send('<h1>404 - Not Found</h1>')
 })
 
