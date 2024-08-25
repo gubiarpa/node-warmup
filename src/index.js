@@ -2,9 +2,9 @@
 const crypto = require('node:crypto')
 
 const express = require('express')
-const z = require('zod')
 
 const movies = require('./mock/movies.json')
+const { validateMovie } = require('./schemas/movies.schema')
 
 /// Implementation
 const app = express()
@@ -45,17 +45,14 @@ app.get('/movies/:id', (req, res) => {
 })
 
 app.post('/movies', (req, res) => {
-	const { title, genre, year, director, duration, rate, poster } = req.body
-	const newID = crypto.randomUUID()
+	const result = validateMovie(req.body)
+
+	if (result.error)
+		return res.status(422).json({ error: JSON.parse(result.error.message) })
+
 	const newMovie = {
-		id: newID,
-		title,
-		genre,
-		year,
-		director,
-		duration,
-		rate: rate ?? 0,
-		poster,
+		id: crypto.randomUUID(),
+		...result.data,
 	}
 	movies.push(newMovie)
 	res.status(201).json(newMovie)
