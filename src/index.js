@@ -1,13 +1,17 @@
-const express = require('express')
+/// Dependencies
 const crypto = require('node:crypto')
+
+const express = require('express')
+const z = require('zod')
+
 const movies = require('./mock/movies.json')
 
+/// Implementation
 const app = express()
-
-app.disable('x-powered-by')
 
 const PORT = process.env.PORT ?? 2907
 
+app.disable('x-powered-by')
 app.use(express.json())
 
 app.get('/', (_, res) => {
